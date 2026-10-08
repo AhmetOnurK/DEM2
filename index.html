@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Une surprise pour toi...</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #1a0b05;
+            --bg-light: #4a2511;
+            --text-main: #f9dec9;
+            --accent-gold: #e59866;
+            --accent-rust: #d35400;
+            --accent-terra: #a04000;
+            --error-red: #ff6b6b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        .step-container {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(42, 22, 16, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 152, 102, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: absolute;
+        }
+
+        .step-container.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateY(0);
+            position: relative;
+            z-index: 10;
+        }
+
+        .step-title {
+            color: var(--accent-gold);
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .step-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-weight: 300;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--accent-terra);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-bottom-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .btn-submit {
+            background-color: var(--accent-terra);
+            color: var(--text-main);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Montserrat', sans-serif;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--accent-rust);
+            transform: scale(1.05);
+        }
+
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            height: 20px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .lock-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+            text-align: left;
+            background: rgba(0,0,0,0.25);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(229, 152, 102, 0.1);
+        }
+        
+        .lock-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .lock-clue {
+            font-size: 0.95rem;
+            flex: 1;
+            color: var(--text-main);
+        }
+        
+        .lock-input {
+            width: 45px !important;
+            height: 45px;
+            font-size: 1.5rem !important;
+            padding: 0 !important;
+            border-bottom: 2px solid var(--accent-terra) !important;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2) !important;
+            color: white !important;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .lock-input:focus {
+            outline: none;
+            border-bottom-color: var(--accent-gold) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .proposal-text {
+            text-align: left;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .proposal-question {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            min-height: 80px;
+        }
+
+        .btn-yes, .btn-no {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            border-radius: 40px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .btn-yes {
+            background-color: var(--accent-rust);
+            color: white;
+            z-index: 2;
+        }
+
+        .btn-yes:hover {
+            background-color: var(--accent-gold);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(229, 152, 102, 0.5);
+        }
+
+        .btn-no {
+            background-color: transparent;
+            color: var(--text-main);
+            border-color: var(--accent-terra);
+            position: absolute;
+            z-index: 1;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg) scale(0.5); opacity: 0; }
+        }
+        
+        .heart {
+            position: fixed;
+            color: var(--accent-gold);
+            pointer-events: none;
+            z-index: 999;
+            filter: drop-shadow(0 0 5px rgba(229, 152, 102, 0.5));
+        }
+
+        #final-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 11, 5, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 2s ease;
+        }
+        
+        #final-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .final-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--accent-gold);
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(229, 152, 102, 0.3); }
+            50% { transform: scale(1.05); text-shadow: 0 0 40px rgba(229, 152, 102, 0.7); }
+        }
+
+        @media (max-width: 600px) {
+            .step-container { padding: 30px 20px; }
+            .step-title { font-size: 1.5rem; }
+            .step-text { font-size: 1rem; }
+            .proposal-text { font-size: 1rem; }
+            .proposal-question { font-size: 2rem; }
+            .lock-clue { font-size: 0.85rem; }
+            .lock-input { width: 35px !important; height: 35px; font-size: 1.2rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="step-1" class="step-container active">
+        <h1 class="step-title">Chapitre I : L'Origine</h1>
+        <p class="step-text">Là où la terre se mêle au soleil, au milieu de couleurs flamboyantes. Où nos regards se sont-ils croisés pour la première fois ?</p>
+        <div class="input-group">
+            <input type="text" id="input-1" placeholder="Votre réponse" autocomplete="off">
+            <div id="error-1" class="error-message">Cette terre ne reconnaît pas ce nom.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(1)">Continuer</button>
+    </div>
+
+    <div id="step-2" class="step-container">
+        <h1 class="step-title">Chapitre II : Le Cadenas Numérique</h1>
+        <p class="step-text" style="margin-bottom: 15px;">Déchiffre le code de notre commencement :</p>
+        <div class="lock-container">
+            <div class="lock-row">
+                <span class="lock-clue">1. La trinité</span>
+                <input type="text" class="lock-input" id="l1" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="lock-row">
+                <span class="lock-clue">2. Le premier de tous</span>
+                <input type="text" class="lock-input" id="l2" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="lock-row">
+                <span class="lock-clue">3. Le vide</span>
+                <input type="text" class="lock-input" id="l3" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="lock-row">
+                <span class="lock-clue">4. Les sens</span>
+                <input type="text" class="lock-input" id="l4" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="lock-row">
+                <span class="lock-clue">5. Le duo</span>
+                <input type="text" class="lock-input" id="l5" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+            <div class="lock-row">
+                <span class="lock-clue">6. La moitié d'une douzaine</span>
+                <input type="text" class="lock-input" id="l6" maxlength="1" inputmode="numeric" autocomplete="off">
+            </div>
+        </div>
+        <div id="error-2" class="error-message">Le cadenas reste fermé...</div>
+        <button class="btn-submit" onclick="checkAnswer(2)">Déverrouiller</button>
+    </div>
+
+    <div id="step-3" class="step-container">
+        <h1 class="step-title">Chapitre III : Dans l'obscurité</h1>
+        <p class="step-text">Le jeudi 4 juin, une salle obscure a abrité notre premier baiser. Face à l'écran, quel mot résumait alors ce que nous étions en train de devenir l'un pour l'autre ?</p>
+        <div class="input-group">
+            <input type="text" id="input-3" placeholder="Un seul mot..." autocomplete="off">
+            <div id="error-3" class="error-message">Ce n'était pas l'émotion de cet instant.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(3)">Continuer</button>
+    </div>
+
+    <div id="step-4" class="step-container">
+        <h1 class="step-title">Chapitre IV : L'Épreuve</h1>
+        <p class="step-text">Le vendredi 19 juin, notre lien a prouvé sa force face aux tempêtes. Trouve l'expression (6 mots) qui illustre parfaitement cette promesse : que suit-il toujours la tempête ?</p>
+        <div class="input-group">
+            <input type="text" id="input-4" placeholder="L'expression..." autocomplete="off">
+            <div id="error-4" class="error-message">Non, la lumière est différente.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(4)">Continuer</button>
+    </div>
+
+    <div id="step-5" class="step-container">
+        <h1 class="step-title">Chapitre V : L'Écume</h1>
+        <p class="step-text">Le 28 juin, le bruit des vagues et le sel sur la peau. Sur quelle plage de Cassis avons-nous laissé nos premières empreintes ?</p>
+        <div class="input-group">
+            <input type="text" id="input-5" placeholder="Le nom de la plage" autocomplete="off">
+            <div id="error-5" class="error-message">Les vagues ont effacé ce nom.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(5)">Continuer</button>
+    </div>
+
+    <div id="step-6" class="step-container">
+        <h1 class="step-title">Chapitre VI : L'Échappée</h1>
+        <p class="step-text">Le 12 juillet, notre première véritable escapade sur la côte varoise. De la cité lacustre aux yachts de luxe. (Indiquez le nom du département) ?</p>
+        <div class="input-group">
+            <input type="text" id="input-6" placeholder="Ta réponse..." autocomplete="off">
+            <div id="error-6" class="error-message">La boussole indique une autre direction.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(6)">Continuer</button>
+    </div>
+
+    <div id="step-7" class="step-container">
+        <h1 class="step-title">Chapitre VII : La Vague Violette</h1>
+        <p class="step-text">Le 17 juillet, Une carte du monde se dessine : Séoul, Pusan, Munich, New York, et surtout Paris, où ton cœur a vibré avec eux. Sept étoiles illuminant un ciel violet. De qui s'agit-il ?</p>
+        <div class="input-group">
+            <input type="text" id="input-7" placeholder="La réponse..." autocomplete="off">
+            <div id="error-7" class="error-message">Les étoiles restent muettes.</div>
+        </div>
+        <button class="btn-submit" onclick="checkAnswer(7)">Continuer</button>
+    </div>
+
+    <div id="step-9" class="step-container" style="max-width: 800px;">
+        <div class="proposal-text">
+            Minem, canım, gülüm, sevgilim, bebeyim, seni tarif edecek bir kelim bulamadığından dolayı farklı şekillerde sana hitap ediyorum. Bu kelimeler benim için boş değil her birinin farklı, değerleri ve anlamları var. 
+            Je t’aime au point où les mots n’ont pas de valeurs face a ce que je ressens pour toi. Je suis très heureux de t’avoir à mes côtés, dans ma vie, dans mon cœur et Allah’a sonsuz şükürler olsun ki seni karşıma çıkardı ve kalplerimizi birbirine bağladı. 
+            Ömürümün son gününe kadar bu sevgiyi, ilişkiyi, aşkı taşıyacağımdan hiç şüphen olmasın, sen benim için sadece bir ömürülük değil, dünyada ve ahirette sahip olmak istediğim tek insan, yol arkadaşı, eşsin. 
+            Rabbim sevgimizi muhabbetimizi artırsın ve bereketli eylesin. Seni çok seviyorum ! 
+            Benimle evlenir misin ? 
+        </div>
+        
+        <div class="proposal-question">Benimle evlenir misin ?</div>
+        
+        <div class="buttons-container">
+            <button class="btn-yes" onclick="triggerSuccess()">Oui</button>
+            <button id="btn-no" class="btn-no">Non</button>
+        </div>
+    </div>
+
+    <div id="final-screen">
+        <div class="final-text">Seni çok seviyorum ❤️</div>
+    </div>
+
+    <script>
+        function sanitizeString(str) {
+            if (!str) return "";
+            return str
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // Enlève les accents
+                .replace(/[^a-z0-9]/gi, "")      // Enlève espaces et ponctuation
+                .toLowerCase();                  // Met en minuscules
+        }
+
+        const lockInputs = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'];
+        lockInputs.forEach((id, index) => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length === 1 && index < 5) {
+                        document.getElementById(lockInputs[index + 1]).focus();
+                    }
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                        document.getElementById(lockInputs[index - 1]).focus();
+                    }
+                });
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkAnswer(2);
+                    }
+                });
+            }
+        });
+
+        function checkAnswer(stepNum) {
+            let isCorrect = false;
+
+            if (stepNum === 2) {
+                // Validation spécifique pour le cadenas à 6 chiffres
+                const lockValues = lockInputs.map(id => document.getElementById(id).value).join('');
+                isCorrect = (lockValues === "310526");
+            } else {
+                const inputField = document.getElementById(`input-${stepNum}`);
+                const rawValue = inputField.value;
+                const value = sanitizeString(rawValue);
+
+                switch(stepNum) {
+                    case 1:
+                        isCorrect = value.includes("ocre") || value.includes("orce");
+                        break;
+                    case 3:
+                        isCorrect = value.includes("obsession");
+                        break;
+                    case 4:
+                        isCorrect = value.includes("beautemps");
+                        break;
+                    case 5:
+                        isCorrect = value.includes("liouquet");
+                        break;
+                    case 6:
+                        isCorrect = value.includes("cotedazur") || value.includes("83") || value.includes("var");
+                        break;
+                    case 7:
+                        isCorrect = value === "bts";
+                        break;
+                }
+            }
+
+            if (isCorrect) {
+                let nextStep = stepNum + 1;
+                // Passe directement de l'étape 7 à 9
+                if (stepNum === 7) {
+                    nextStep = 9;
+                }
+                goToStep(stepNum, nextStep);
+            } else {
+                showError(stepNum);
+            }
+        }
+
+        for (let i = 1; i <= 7; i++) {
+            if (i === 2) continue; // Ignorer l'étape 2 (cadenas)
+            const input = document.getElementById(`input-${i}`);
+            if (input) {
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        checkAnswer(i);
+                    }
+                });
+            }
+        }
+
+        function goToStep(current, next) {
+            const currentDiv = document.getElementById(`step-${current}`);
+            const nextDiv = document.getElementById(`step-${next}`);
+
+            currentDiv.style.opacity = '0';
+            currentDiv.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                currentDiv.classList.remove('active');
+                nextDiv.classList.add('active');
+                
+                if (next === 2) {
+                    const l1 = document.getElementById('l1');
+                    if(l1) l1.focus();
+                } else {
+                    const nextInput = document.getElementById(`input-${next}`);
+                    if(nextInput) nextInput.focus();
+                }
+
+                if(next === 9) {
+                    setupFleeingButton();
+                }
+            }, 800);
+        }
+
+        function showError(stepNum) {
+            const container = document.getElementById(`step-${stepNum}`);
+            const errorMsg = document.getElementById(`error-${stepNum}`);
+            
+            container.classList.remove('shake');
+            void container.offsetWidth;
+            container.classList.add('shake');
+            
+            errorMsg.style.opacity = '1';
+
+            if (stepNum === 2) {
+                lockInputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = '';
+                });
+                setTimeout(() => { document.getElementById('l1').focus(); }, 50);
+            } else {
+                const inputField = document.getElementById(`input-${stepNum}`);
+                if (inputField) inputField.value = '';
+            }
+            
+            setTimeout(() => {
+                errorMsg.style.opacity = '0';
+                container.classList.remove('shake');
+            }, 3000);
+        }
+
+        function setupFleeingButton() {
+            const btnNo = document.getElementById('btn-no');
+            
+            function moveButton(e) {
+                if(e) e.preventDefault();
+
+                const maxX = 150;
+                const maxY = 100;
+                
+                const randomX = (Math.random() * maxX * 2) - maxX;
+                const randomY = (Math.random() * maxY * 2) - maxY;
+
+                btnNo.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            }
+
+            btnNo.addEventListener('mouseover', moveButton);
+            btnNo.addEventListener('touchstart', moveButton, {passive: false});
+            btnNo.addEventListener('click', moveButton);
+        }
+
+        function triggerSuccess() {
+            const finalScreen = document.getElementById('final-screen');
+            finalScreen.classList.add('visible');
+            startRainingHearts();
+        }
+
+        function startRainingHearts() {
+            const hearts = ['❤️', '✨', '🤍', '🤎'];
+            const body = document.body;
+
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+                
+                heart.style.left = Math.random() * 100 + 'vw';
+                
+                const fallDuration = Math.random() * 4 + 3;
+                heart.style.animation = `fall ${fallDuration}s linear forwards`;
+                
+                heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+
+                body.appendChild(heart);
+
+                setTimeout(() => { 
+                    heart.remove(); 
+                }, fallDuration * 1000);
+            }, 150);
+        }
+    </script>
+</body>
+</html>
